@@ -4,6 +4,7 @@ from django_filters.rest_framework import (
     ChoiceFilter,
     DjangoFilterBackend,
     FilterSet,
+    BooleanFilter,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -30,6 +31,7 @@ class UserSerializer(ModelSerializer):
 class TaskFilter(FilterSet):
     title = CharFilter(lookup_expr="icontains")
     status = ChoiceFilter(choices=STATUS_CHOICES)
+    completed = BooleanFilter()
 
 
 class TaskSerializer(ModelSerializer):
