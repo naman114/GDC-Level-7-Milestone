@@ -5,4 +5,10 @@ from django.contrib import admin
 from tasks.models import Task, TaskHistory
 
 admin.sites.site.register(Task)
-admin.sites.site.register(TaskHistory)
+
+
+class TaskHistoryAdmin(admin.ModelAdmin):
+    readonly_fields = ("updated_at",)
+
+
+admin.sites.site.register(TaskHistory, TaskHistoryAdmin)
