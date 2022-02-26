@@ -5,14 +5,16 @@ from django_filters.rest_framework import (
     DjangoFilterBackend,
     FilterSet,
     BooleanFilter,
+    IsoDateTimeFilter,
 )
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from tasks.models import Task
+from tasks.models import Task, TaskHistory
 
 STATUS_CHOICES = (
     ("PENDING", "PENDING"),
@@ -39,7 +41,7 @@ class TaskSerializer(ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ["title", "description", "completed", "user"]
+        fields = ["id", "title", "description", "completed", "status", "user"]
 
 
 class TaskViewSet(ModelViewSet):
@@ -63,3 +65,38 @@ class TaskListAPI(APIView):
         tasks = Task.objects.filter(deleted=False)
         data = TaskSerializer(tasks, many=True).data
         return Response({"tasks": data})
+
+
+class TaskHistoryFilter(FilterSet):
+    updated_at = IsoDateTimeFilter()
+    previous_status = ChoiceFilter(choices=STATUS_CHOICES)
+    current_status = ChoiceFilter(choices=STATUS_CHOICES)
+
+
+class TaskHistorySerializer(ModelSerializer):
+    class Meta:
+        model = TaskHistory
+        fields = ["previous_status", "current_status", "updated_at"]
+
+
+class TaskHistoryListView(ListAPIView):
+    queryset = TaskHistory.objects.all()
+    serializer_class = TaskHistorySerializer
+
+    permission_classes = (IsAuthenticated,)
+
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TaskHistoryFilter
+
+    def get_queryset(self):
+        task_id = self.kwargs["id"]
+        # Check if valid task_id is requested
+        is_valid_task_id = Task.objects.filter(
+            id=task_id, deleted=False, user=self.request.user
+        ).exists()
+
+        if is_valid_task_id:
+            return TaskHistory.objects.filter(task=task_id)
+
+        # Return empty queryset
+        return TaskHistory.objects.none()
