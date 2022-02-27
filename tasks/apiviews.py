@@ -7,12 +7,12 @@ from django_filters.rest_framework import (
     BooleanFilter,
     IsoDateTimeFilter,
 )
-from rest_framework.generics import ListAPIView
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from tasks.models import Task, TaskHistory
 
@@ -79,7 +79,7 @@ class TaskHistorySerializer(ModelSerializer):
         fields = ["previous_status", "current_status", "updated_at"]
 
 
-class TaskHistoryListView(ListAPIView):
+class TaskHistoryViewSet(ReadOnlyModelViewSet):
     queryset = TaskHistory.objects.all()
     serializer_class = TaskHistorySerializer
 
