@@ -90,13 +90,6 @@ class TaskHistoryListView(ListAPIView):
 
     def get_queryset(self):
         task_id = self.kwargs["id"]
-        # Check if valid task_id is requested
-        is_valid_task_id = Task.objects.filter(
-            id=task_id, deleted=False, user=self.request.user
-        ).exists()
-
-        if is_valid_task_id:
-            return TaskHistory.objects.filter(task=task_id)
-
-        # Return empty queryset
-        return TaskHistory.objects.none()
+        return TaskHistory.objects.filter(
+            task=task_id, task__deleted=False, task__user=self.request.user
+        )
